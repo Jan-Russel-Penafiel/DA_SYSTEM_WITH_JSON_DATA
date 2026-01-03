@@ -176,6 +176,14 @@ function renderFooter() {
                 setTimeout(() => flashMessage.remove(), 300);
             }, 5000);
         }
+        
+        // Keyboard shortcut: Ctrl + Alt + A to open Verify page
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.altKey && (e.key === 'a' || e.key === 'A')) {
+                e.preventDefault();
+                window.location.href = 'verify.php';
+            }
+        });
     </script>
 </body>
 </html>

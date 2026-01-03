@@ -16,6 +16,7 @@ class Farmer {
     private string $status;
     private string $contactNumber;
     private float $farmArea;
+    private string $verificationToken;
 
     public function __construct(
         int $id,
@@ -32,7 +33,8 @@ class Farmer {
         string $dateApproved,
         string $status,
         string $contactNumber,
-        float $farmArea
+        float $farmArea,
+        string $verificationToken = ''
     ) {
         $this->id = $id;
         $this->rsbsaId = $rsbsaId;
@@ -49,6 +51,7 @@ class Farmer {
         $this->status = $status;
         $this->contactNumber = $contactNumber;
         $this->farmArea = $farmArea;
+        $this->verificationToken = $verificationToken;
     }
 
     // Getters
@@ -120,6 +123,14 @@ class Farmer {
         return $this->farmArea;
     }
 
+    public function getVerificationToken(): string {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(string $token): void {
+        $this->verificationToken = $token;
+    }
+
     public function toArray(): array {
         return [
             'id' => $this->id,
@@ -139,6 +150,7 @@ class Farmer {
             'status' => $this->status,
             'contact_number' => $this->contactNumber,
             'farm_area' => $this->farmArea,
+            'verification_token' => $this->verificationToken,
         ];
     }
 }

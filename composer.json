@@ -1,0 +1,8 @@
+{
+    "name": "da/fertilizer-system",
+    "description": "DA Fertilizer Beneficiary System",
+    "type": "project",
+    "require": {
+        "bacon/bacon-qr-code": "^3.0"
+    }
+}

@@ -2,13 +2,16 @@
 
 require_once __DIR__ . '/Farmer.php';
 require_once __DIR__ . '/Region.php';
+require_once __DIR__ . '/QRCodeGenerator.php';
 
 class FarmerRepository {
     private array $farmers = [];
+    private string $dataFile;
     private static ?FarmerRepository $instance = null;
 
     public function __construct() {
-        $this->loadMockData();
+        $this->dataFile = __DIR__ . '/../data/farmers.json';
+        $this->loadFromJson();
     }
 
     public static function getInstance(): FarmerRepository {
@@ -18,179 +21,230 @@ class FarmerRepository {
         return self::$instance;
     }
 
-    private function loadMockData(): void {
-        $mockData = [
-            // NCR
-            ['NCR', 'Bagong Silang', 'Caloocan City', 'Metro Manila'],
-            ['NCR', 'Novaliches', 'Quezon City', 'Metro Manila'],
-            ['NCR', 'Fairview', 'Quezon City', 'Metro Manila'],
-            
-            // CAR
-            ['CAR', 'Poblacion', 'La Trinidad', 'Benguet'],
-            ['CAR', 'Buyagan', 'La Trinidad', 'Benguet'],
-            ['CAR', 'Pico', 'La Trinidad', 'Benguet'],
-            ['CAR', 'Alapang', 'La Trinidad', 'Benguet'],
-            ['CAR', 'Balili', 'La Trinidad', 'Benguet'],
-            
-            // Region I
-            ['I', 'San Nicolas', 'Batac', 'Ilocos Norte'],
-            ['I', 'Poblacion', 'Laoag City', 'Ilocos Norte'],
-            ['I', 'Baay', 'Batac', 'Ilocos Norte'],
-            ['I', 'Lacub', 'Batac', 'Ilocos Norte'],
-            ['I', 'Quiling Norte', 'Batac', 'Ilocos Norte'],
-            
-            // Region II
-            ['II', 'Centro', 'Tuguegarao City', 'Cagayan'],
-            ['II', 'Annafunan', 'Tuguegarao City', 'Cagayan'],
-            ['II', 'Carig', 'Tuguegarao City', 'Cagayan'],
-            ['II', 'Ugac Norte', 'Tuguegarao City', 'Cagayan'],
-            ['II', 'Leonarda', 'Tuguegarao City', 'Cagayan'],
-            
-            // Region III
-            ['III', 'Dolores', 'San Fernando', 'Pampanga'],
-            ['III', 'Maimpis', 'San Fernando', 'Pampanga'],
-            ['III', 'Sindalan', 'San Fernando', 'Pampanga'],
-            ['III', 'Bical', 'Mabalacat', 'Pampanga'],
-            ['III', 'San Francisco', 'Mabalacat', 'Pampanga'],
-            ['III', 'Camachiles', 'Mabalacat', 'Pampanga'],
-            
-            // Region IV-A
-            ['IV-A', 'Barangay I', 'Calamba', 'Laguna'],
-            ['IV-A', 'Parian', 'Calamba', 'Laguna'],
-            ['IV-A', 'Canlubang', 'Calamba', 'Laguna'],
-            ['IV-A', 'Mayapa', 'Calamba', 'Laguna'],
-            ['IV-A', 'Real', 'Calamba', 'Laguna'],
-            ['IV-A', 'Bucal', 'Calamba', 'Laguna'],
-            
-            // Region IV-B
-            ['IV-B', 'Poblacion', 'Calapan', 'Oriental Mindoro'],
-            ['IV-B', 'Parang', 'Calapan', 'Oriental Mindoro'],
-            ['IV-B', 'Guinobatan', 'Calapan', 'Oriental Mindoro'],
-            ['IV-B', 'Managpi', 'Calapan', 'Oriental Mindoro'],
-            
-            // Region V
-            ['V', 'Daraga', 'Legazpi City', 'Albay'],
-            ['V', 'Rawis', 'Legazpi City', 'Albay'],
-            ['V', 'Bagumbayan', 'Legazpi City', 'Albay'],
-            ['V', 'Bonot', 'Legazpi City', 'Albay'],
-            ['V', 'Cruzada', 'Legazpi City', 'Albay'],
-            
-            // Region VI
-            ['VI', 'Arevalo', 'Iloilo City', 'Iloilo'],
-            ['VI', 'Jaro', 'Iloilo City', 'Iloilo'],
-            ['VI', 'Mandurriao', 'Iloilo City', 'Iloilo'],
-            ['VI', 'Molo', 'Iloilo City', 'Iloilo'],
-            ['VI', 'La Paz', 'Iloilo City', 'Iloilo'],
-            ['VI', 'Lapuz', 'Iloilo City', 'Iloilo'],
-            
-            // Region VII
-            ['VII', 'Lahug', 'Cebu City', 'Cebu'],
-            ['VII', 'Mabolo', 'Cebu City', 'Cebu'],
-            ['VII', 'Talamban', 'Cebu City', 'Cebu'],
-            ['VII', 'Banilad', 'Cebu City', 'Cebu'],
-            ['VII', 'Guadalupe', 'Cebu City', 'Cebu'],
-            
-            // Region VIII
-            ['VIII', 'Abucay', 'Tacloban City', 'Leyte'],
-            ['VIII', 'Apitong', 'Tacloban City', 'Leyte'],
-            ['VIII', 'Cabalawan', 'Tacloban City', 'Leyte'],
-            ['VIII', 'Sagkahan', 'Tacloban City', 'Leyte'],
-            ['VIII', 'Marasbaras', 'Tacloban City', 'Leyte'],
-            
-            // Region IX
-            ['IX', 'Baliwasan', 'Zamboanga City', 'Zamboanga del Sur'],
-            ['IX', 'Canelar', 'Zamboanga City', 'Zamboanga del Sur'],
-            ['IX', 'Tetuan', 'Zamboanga City', 'Zamboanga del Sur'],
-            ['IX', 'Sta. Maria', 'Zamboanga City', 'Zamboanga del Sur'],
-            ['IX', 'Pasonanca', 'Zamboanga City', 'Zamboanga del Sur'],
-            
-            // Region X
-            ['X', 'Bulua', 'Cagayan de Oro', 'Misamis Oriental'],
-            ['X', 'Carmen', 'Cagayan de Oro', 'Misamis Oriental'],
-            ['X', 'Kauswagan', 'Cagayan de Oro', 'Misamis Oriental'],
-            ['X', 'Lapasan', 'Cagayan de Oro', 'Misamis Oriental'],
-            ['X', 'Macasandig', 'Cagayan de Oro', 'Misamis Oriental'],
-            
-            // Region XI
-            ['XI', 'Agdao', 'Davao City', 'Davao del Sur'],
-            ['XI', 'Buhangin', 'Davao City', 'Davao del Sur'],
-            ['XI', 'Calinan', 'Davao City', 'Davao del Sur'],
-            ['XI', 'Toril', 'Davao City', 'Davao del Sur'],
-            ['XI', 'Talomo', 'Davao City', 'Davao del Sur'],
-            ['XI', 'Matina', 'Davao City', 'Davao del Sur'],
-            
-            // Region XII
-            ['XII', 'Apopong', 'General Santos', 'South Cotabato'],
-            ['XII', 'Bula', 'General Santos', 'South Cotabato'],
-            ['XII', 'Calumpang', 'General Santos', 'South Cotabato'],
-            ['XII', 'Dadiangas', 'General Santos', 'South Cotabato'],
-            ['XII', 'Fatima', 'General Santos', 'South Cotabato'],
-            
-            // Region XIII
-            ['XIII', 'Ampayon', 'Butuan City', 'Agusan del Norte'],
-            ['XIII', 'Bancasi', 'Butuan City', 'Agusan del Norte'],
-            ['XIII', 'Banza', 'Butuan City', 'Agusan del Norte'],
-            ['XIII', 'Libertad', 'Butuan City', 'Agusan del Norte'],
-            ['XIII', 'Doongan', 'Butuan City', 'Agusan del Norte'],
-            
-            // BARMM
-            ['BARMM', 'Tamontaka', 'Cotabato City', 'Maguindanao'],
-            ['BARMM', 'Rosary Heights', 'Cotabato City', 'Maguindanao'],
-            ['BARMM', 'Poblacion', 'Cotabato City', 'Maguindanao'],
-            ['BARMM', 'Bagua', 'Cotabato City', 'Maguindanao'],
-        ];
+    /**
+     * Load farmers from JSON file
+     */
+    private function loadFromJson(): void {
+        if (!file_exists($this->dataFile)) {
+            $this->farmers = [];
+            $this->saveToJson();
+            return;
+        }
 
-        $firstNames = ['Juan', 'Pedro', 'Maria', 'Jose', 'Rosa', 'Antonio', 'Carmen', 'Ricardo', 'Luz', 'Manuel', 
-                       'Elena', 'Roberto', 'Ana', 'Carlos', 'Teresa', 'Francisco', 'Lourdes', 'Eduardo', 'Gloria', 'Miguel',
-                       'Rodrigo', 'Josefa', 'Ramon', 'Corazon', 'Fernando', 'Imelda', 'Benigno', 'Cynthia', 'Renato', 'Leticia'];
-        $lastNames = ['Dela Cruz', 'Santos', 'Reyes', 'Garcia', 'Mendoza', 'Torres', 'Flores', 'Gonzales', 'Ramos', 'Cruz', 
-                      'Bautista', 'Aquino', 'Fernandez', 'Lopez', 'Martinez', 'Perez', 'Rivera', 'Villanueva', 'Castro', 'Domingo',
-                      'Mercado', 'Tolentino', 'Pascual', 'Manalo', 'Aguilar', 'Santiago', 'Dizon', 'Morales', 'Navarro', 'Espinosa'];
-        $middleNames = ['Abella', 'Buenaventura', 'Concepcion', 'Delos Santos', 'Evangelista', 'Francisco', 'Galang', 'Hernandez', 
-                        'Ignacio', 'Jacinto', 'Katigbak', 'Lacson', 'Macapagal', 'Natividad', 'Ocampo', 'Panganiban', 'Quizon', 
-                        'Romulo', 'Salazar', 'Tanedo'];
-        $fertilizerTypes = ['Urea (46-0-0)', 'Complete Fertilizer (14-14-14)', 'Ammonium Sulfate (21-0-0)', 
-                            'Muriate of Potash (0-0-60)', 'Ammonium Phosphate (16-20-0)', 'Organic Fertilizer'];
-        $cropTypes = ['Rice', 'Corn', 'Vegetables', 'Coconut', 'Sugarcane', 'Banana', 'Mango', 'Coffee'];
+        $jsonContent = file_get_contents($this->dataFile);
+        $data = json_decode($jsonContent, true);
 
-        $id = 1;
-        foreach ($mockData as $data) {
-            $firstName = $firstNames[array_rand($firstNames)];
-            $lastName = $lastNames[array_rand($lastNames)];
-            $middleName = $middleNames[array_rand($middleNames)];
-            $fertilizerType = $fertilizerTypes[array_rand($fertilizerTypes)];
-            $fertilizerQty = rand(3, 10) * 5;
-            $farmArea = rand(5, 50) / 10;
-            $dateApproved = date('Y-m-d', strtotime('-' . rand(1, 365) . ' days'));
-            $contactNumber = '09' . rand(10, 99) . rand(100, 999) . rand(1000, 9999);
+        if (!is_array($data)) {
+            $this->farmers = [];
+            return;
+        }
 
-            $rsbsaId = 'RSBSA-' . $data[0] . '-' . str_pad($id, 6, '0', STR_PAD_LEFT);
-
+        $this->farmers = [];
+        foreach ($data as $item) {
             $this->farmers[] = new Farmer(
-                $id,
-                $rsbsaId,
-                $firstName,
-                $lastName,
-                $middleName,
-                $data[1],
-                $data[2],
-                $data[3],
-                $data[0],
-                $fertilizerType,
-                $fertilizerQty,
-                $dateApproved,
-                'Approved',
-                $contactNumber,
-                $farmArea
+                (int)$item['id'],
+                $item['rsbsa_id'],
+                $item['first_name'],
+                $item['last_name'],
+                $item['middle_name'],
+                $item['barangay'],
+                $item['municipality'],
+                $item['province'],
+                $item['region_code'],
+                $item['fertilizer_type'],
+                (float)$item['fertilizer_quantity'],
+                $item['date_approved'],
+                $item['status'],
+                $item['contact_number'],
+                (float)$item['farm_area'],
+                $item['verification_token'] ?? ''
             );
-            $id++;
         }
     }
 
+    /**
+     * Save farmers to JSON file
+     */
+    private function saveToJson(): bool {
+        $data = [];
+        foreach ($this->farmers as $farmer) {
+            $data[] = [
+                'id' => $farmer->getId(),
+                'rsbsa_id' => $farmer->getRsbsaId(),
+                'first_name' => $farmer->getFirstName(),
+                'last_name' => $farmer->getLastName(),
+                'middle_name' => $farmer->getMiddleName(),
+                'barangay' => $farmer->getBarangay(),
+                'municipality' => $farmer->getMunicipality(),
+                'province' => $farmer->getProvince(),
+                'region_code' => $farmer->getRegionCode(),
+                'fertilizer_type' => $farmer->getFertilizerType(),
+                'fertilizer_quantity' => $farmer->getFertilizerQuantity(),
+                'date_approved' => $farmer->getDateApproved(),
+                'status' => $farmer->getStatus(),
+                'contact_number' => $farmer->getContactNumber(),
+                'farm_area' => $farmer->getFarmArea(),
+                'verification_token' => $farmer->getVerificationToken()
+            ];
+        }
+
+        $dir = dirname($this->dataFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        return file_put_contents($this->dataFile, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+    }
+
+    /**
+     * Get next available ID
+     */
+    private function getNextId(): int {
+        $maxId = 0;
+        foreach ($this->farmers as $farmer) {
+            if ($farmer->getId() > $maxId) {
+                $maxId = $farmer->getId();
+            }
+        }
+        return $maxId + 1;
+    }
+
+    /**
+     * Generate RSBSA ID
+     */
+    private function generateRsbsaId(string $regionCode): string {
+        $count = 1;
+        foreach ($this->farmers as $farmer) {
+            if ($farmer->getRegionCode() === $regionCode) {
+                $count++;
+            }
+        }
+        return 'RSBSA-' . $regionCode . '-' . str_pad($count, 6, '0', STR_PAD_LEFT);
+    }
+
+    // ==================== CRUD OPERATIONS ====================
+
+    /**
+     * CREATE - Add a new farmer
+     */
+    public function createFarmer(array $data): ?Farmer {
+        $id = $this->getNextId();
+        $rsbsaId = $this->generateRsbsaId($data['region_code']);
+        
+        // Generate verification token
+        $verificationToken = QRCodeGenerator::generateVerificationToken($id, $rsbsaId);
+
+        $farmer = new Farmer(
+            $id,
+            $rsbsaId,
+            trim($data['first_name']),
+            trim($data['last_name']),
+            trim($data['middle_name'] ?? ''),
+            trim($data['barangay']),
+            trim($data['municipality']),
+            trim($data['province']),
+            trim($data['region_code']),
+            trim($data['fertilizer_type']),
+            (float)$data['fertilizer_quantity'],
+            $data['date_approved'] ?? date('Y-m-d'),
+            $data['status'] ?? 'Approved',
+            trim($data['contact_number']),
+            (float)$data['farm_area'],
+            $verificationToken
+        );
+
+        $this->farmers[] = $farmer;
+        
+        if ($this->saveToJson()) {
+            return $farmer;
+        }
+        
+        // Remove farmer if save failed
+        array_pop($this->farmers);
+        return null;
+    }
+
+    /**
+     * READ - Get all farmers
+     */
     public function getAllFarmers(): array {
         return $this->farmers;
     }
 
+    /**
+     * READ - Get farmer by ID
+     */
+    public function getFarmerById(int $id): ?Farmer {
+        foreach ($this->farmers as $farmer) {
+            if ($farmer->getId() === $id) {
+                return $farmer;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * READ - Get farmer by RSBSA ID
+     */
+    public function getFarmerByRsbsaId(string $rsbsaId): ?Farmer {
+        foreach ($this->farmers as $farmer) {
+            if ($farmer->getRsbsaId() === $rsbsaId) {
+                return $farmer;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * UPDATE - Update an existing farmer
+     */
+    public function updateFarmer(int $id, array $data): bool {
+        foreach ($this->farmers as $index => $farmer) {
+            if ($farmer->getId() === $id) {
+                $updatedFarmer = new Farmer(
+                    $id,
+                    $farmer->getRsbsaId(), // Keep original RSBSA ID
+                    trim($data['first_name'] ?? $farmer->getFirstName()),
+                    trim($data['last_name'] ?? $farmer->getLastName()),
+                    trim($data['middle_name'] ?? $farmer->getMiddleName()),
+                    trim($data['barangay'] ?? $farmer->getBarangay()),
+                    trim($data['municipality'] ?? $farmer->getMunicipality()),
+                    trim($data['province'] ?? $farmer->getProvince()),
+                    trim($data['region_code'] ?? $farmer->getRegionCode()),
+                    trim($data['fertilizer_type'] ?? $farmer->getFertilizerType()),
+                    (float)($data['fertilizer_quantity'] ?? $farmer->getFertilizerQuantity()),
+                    $data['date_approved'] ?? $farmer->getDateApproved(),
+                    $data['status'] ?? $farmer->getStatus(),
+                    trim($data['contact_number'] ?? $farmer->getContactNumber()),
+                    (float)($data['farm_area'] ?? $farmer->getFarmArea()),
+                    $farmer->getVerificationToken() // Keep original verification token
+                );
+
+                $this->farmers[$index] = $updatedFarmer;
+                return $this->saveToJson();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * DELETE - Remove a farmer by ID
+     */
+    public function deleteFarmer(int $id): bool {
+        foreach ($this->farmers as $index => $farmer) {
+            if ($farmer->getId() === $id) {
+                array_splice($this->farmers, $index, 1);
+                return $this->saveToJson();
+            }
+        }
+        return false;
+    }
+
+    // ==================== SEARCH & FILTER ====================
+
+    /**
+     * Search farmers with filters
+     */
     public function searchFarmers(
         string $searchTerm = '', 
         string $regionCode = '', 
@@ -228,7 +282,7 @@ class FarmerRepository {
             });
         }
 
-        // Filter by search term (name, RSBSA ID, municipality, province)
+        // Filter by search term
         if (!empty($searchTerm)) {
             $searchTerm = strtolower($searchTerm);
             $results = array_filter($results, function(Farmer $farmer) use ($searchTerm) {
@@ -280,29 +334,16 @@ class FarmerRepository {
         return $results;
     }
 
-    public function getFarmerById(int $id): ?Farmer {
-        foreach ($this->farmers as $farmer) {
-            if ($farmer->getId() === $id) {
-                return $farmer;
-            }
-        }
-        return null;
-    }
-
-    public function getFarmerByRsbsaId(string $rsbsaId): ?Farmer {
-        foreach ($this->farmers as $farmer) {
-            if ($farmer->getRsbsaId() === $rsbsaId) {
-                return $farmer;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * Get farmers by region
+     */
     public function getFarmersByRegion(string $regionCode): array {
         return array_filter($this->farmers, function(Farmer $farmer) use ($regionCode) {
             return $farmer->getRegionCode() === $regionCode;
         });
     }
+
+    // ==================== STATISTICS ====================
 
     public function getTotalFarmers(): int {
         return count($this->farmers);
@@ -352,5 +393,103 @@ class FarmerRepository {
         }
         ksort($municipalities);
         return array_keys($municipalities);
+    }
+
+    // ==================== QR CODE & VERIFICATION ====================
+
+    /**
+     * Get farmer by verification token
+     */
+    public function getFarmerByToken(string $token): ?Farmer {
+        foreach ($this->farmers as $farmer) {
+            if ($farmer->getVerificationToken() === $token) {
+                return $farmer;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Verify a farmer's token
+     */
+    public function verifyFarmerToken(int $farmerId, string $rsbsaId, string $token): array {
+        $farmer = $this->getFarmerById($farmerId);
+        
+        if (!$farmer) {
+            return ['valid' => false, 'message' => 'Farmer not found', 'farmer' => null];
+        }
+        
+        if ($farmer->getRsbsaId() !== $rsbsaId) {
+            return ['valid' => false, 'message' => 'RSBSA ID mismatch', 'farmer' => null];
+        }
+        
+        if ($farmer->getVerificationToken() !== $token) {
+            return ['valid' => false, 'message' => 'Invalid verification token', 'farmer' => null];
+        }
+        
+        // Check verification using QRCodeGenerator
+        $isValid = QRCodeGenerator::verifyToken($farmerId, $rsbsaId, $token);
+        
+        if (!$isValid) {
+            return ['valid' => false, 'message' => 'Token verification failed', 'farmer' => null];
+        }
+        
+        return [
+            'valid' => true, 
+            'message' => 'Beneficiary verified successfully',
+            'farmer' => $farmer,
+            'status' => $farmer->getStatus()
+        ];
+    }
+
+    /**
+     * Generate tokens for existing farmers without tokens
+     */
+    public function migrateExistingFarmersTokens(): int {
+        $count = 0;
+        $modified = false;
+        
+        foreach ($this->farmers as $index => $farmer) {
+            if (empty($farmer->getVerificationToken())) {
+                $token = QRCodeGenerator::generateVerificationToken($farmer->getId(), $farmer->getRsbsaId());
+                
+                // Create new farmer with token
+                $updatedFarmer = new Farmer(
+                    $farmer->getId(),
+                    $farmer->getRsbsaId(),
+                    $farmer->getFirstName(),
+                    $farmer->getLastName(),
+                    $farmer->getMiddleName(),
+                    $farmer->getBarangay(),
+                    $farmer->getMunicipality(),
+                    $farmer->getProvince(),
+                    $farmer->getRegionCode(),
+                    $farmer->getFertilizerType(),
+                    $farmer->getFertilizerQuantity(),
+                    $farmer->getDateApproved(),
+                    $farmer->getStatus(),
+                    $farmer->getContactNumber(),
+                    $farmer->getFarmArea(),
+                    $token
+                );
+                
+                $this->farmers[$index] = $updatedFarmer;
+                $count++;
+                $modified = true;
+            }
+        }
+        
+        if ($modified) {
+            $this->saveToJson();
+        }
+        
+        return $count;
+    }
+
+    /**
+     * Reload data from JSON (useful after external changes)
+     */
+    public function reload(): void {
+        $this->loadFromJson();
     }
 }

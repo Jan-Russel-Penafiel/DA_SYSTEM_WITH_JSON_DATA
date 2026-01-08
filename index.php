@@ -13,8 +13,11 @@ $repository = new FarmerRepository();
 $statistics = new Statistics($repository);
 $regions = Region::getAllRegions();
 
-// Get recent approvals
-$recentApprovals = $statistics->getRecentApprovals(5);
+// Get all farmers sorted alphabetically by full name
+$allFarmers = $repository->getAllFarmers();
+usort($allFarmers, function($a, $b) {
+    return strcmp($a->getFullName(), $b->getFullName());
+});
 $topRegion = $statistics->getRegionWithMostBeneficiaries();
 
 renderHeader('home');
@@ -97,16 +100,16 @@ renderFlashMessage();
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Recent Approvals -->
+        <!-- All Beneficiaries (Alphabetical) -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
             <div class="bg-da-dark-green px-6 py-4">
                 <h2 class="text-lg font-bold text-white flex items-center">
-                    <i class="fas fa-clock mr-2"></i>Recent Approvals
+                    <i class="fas fa-users mr-2"></i>All Beneficiaries (A-Z)
                 </h2>
             </div>
-            <div class="p-4">
+            <div class="p-4 max-h-96 overflow-y-auto">
                 <div class="space-y-3">
-                    <?php foreach ($recentApprovals as $farmer): ?>
+                    <?php foreach ($allFarmers as $farmer): ?>
                         <a href="view.php?id=<?= $farmer->getId() ?>" class="block p-3 bg-gray-50 rounded-lg hover:bg-green-50 transition">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
@@ -128,9 +131,6 @@ renderFlashMessage();
                         </a>
                     <?php endforeach; ?>
                 </div>
-                <a href="beneficiaries.php?sort=date_approved&order=desc" class="block text-center mt-4 text-da-green hover:text-da-dark-green font-semibold">
-                    View All <i class="fas fa-arrow-right ml-1"></i>
-                </a>
             </div>
         </div>
 

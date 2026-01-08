@@ -19,12 +19,8 @@ $selectedRegion = isset($_GET['region']) ? trim($_GET['region']) : '';
 $selectedFertilizer = isset($_GET['fertilizer']) ? trim($_GET['fertilizer']) : '';
 $dateFrom = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $dateTo = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
-$sortBy = isset($_GET['sort']) ? trim($_GET['sort']) : 'date_approved';
-$sortOrder = isset($_GET['order']) ? trim($_GET['order']) : 'desc';
-
-// Pagination
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$perPage = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 15;
+$sortBy = isset($_GET['sort']) ? trim($_GET['sort']) : 'name';
+$sortOrder = isset($_GET['order']) ? trim($_GET['order']) : 'asc';
 
 // Handle export
 if (isset($_GET['export'])) {
@@ -42,11 +38,9 @@ if (isset($_GET['export'])) {
 // Perform search
 $allFarmers = $repository->searchFarmers($searchTerm, $selectedRegion, $selectedFertilizer, $dateFrom, $dateTo, $sortBy, $sortOrder);
 $totalResults = count($allFarmers);
-$totalPages = ceil($totalResults / $perPage);
-$offset = ($page - 1) * $perPage;
-$farmers = array_slice($allFarmers, $offset, $perPage);
+$farmers = $allFarmers;
 
-// Build query string for pagination
+// Build query string for filters
 $queryParams = array_filter([
     'search' => $searchTerm,
     'region' => $selectedRegion,
@@ -54,8 +48,7 @@ $queryParams = array_filter([
     'date_from' => $dateFrom,
     'date_to' => $dateTo,
     'sort' => $sortBy,
-    'order' => $sortOrder,
-    'per_page' => $perPage
+    'order' => $sortOrder
 ]);
 $queryString = http_build_query($queryParams);
 
@@ -155,16 +148,7 @@ renderFlashMessage();
                         <option value="asc" <?= $sortOrder === 'asc' ? 'selected' : '' ?>>Ascending</option>
                     </select>
                 </div>
-                <div>
-                    <label for="per_page" class="block text-sm font-medium text-gray-700 mb-1">Per Page</label>
-                    <select id="per_page" name="per_page" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-da-green focus:border-da-green bg-white">
-                        <option value="10" <?= $perPage === 10 ? 'selected' : '' ?>>10</option>
-                        <option value="15" <?= $perPage === 15 ? 'selected' : '' ?>>15</option>
-                        <option value="25" <?= $perPage === 25 ? 'selected' : '' ?>>25</option>
-                        <option value="50" <?= $perPage === 50 ? 'selected' : '' ?>>50</option>
-                        <option value="100" <?= $perPage === 100 ? 'selected' : '' ?>>100</option>
-                    </select>
-                </div>
+                
             </div>
 
             <div class="flex flex-wrap gap-2">
@@ -209,7 +193,7 @@ renderFlashMessage();
             <?php endif; ?>
         </div>
         <div class="text-gray-600 mt-2 md:mt-0">
-            Showing <?= $offset + 1 ?> - <?= min($offset + $perPage, $totalResults) ?> of <?= $totalResults ?>
+            <i class="fas fa-sort-alpha-down mr-1"></i>Sorted alphabetically by name
         </div>
     </div>
 
@@ -284,44 +268,6 @@ renderFlashMessage();
         <?php endif; ?>
     </div>
 
-    <!-- Pagination -->
-    <?php if ($totalPages > 1): ?>
-        <div class="flex flex-col md:flex-row items-center justify-between bg-white rounded-xl shadow-md p-4">
-            <div class="text-sm text-gray-600 mb-4 md:mb-0">
-                Page <?= $page ?> of <?= $totalPages ?>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <?php if ($page > 1): ?>
-                    <a href="?<?= $queryString ?>&page=1" class="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm">
-                        <i class="fas fa-angle-double-left"></i>
-                    </a>
-                    <a href="?<?= $queryString ?>&page=<?= $page - 1 ?>" class="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm">
-                        <i class="fas fa-angle-left"></i>
-                    </a>
-                <?php endif; ?>
-
-                <?php
-                $startPage = max(1, $page - 2);
-                $endPage = min($totalPages, $page + 2);
-                for ($i = $startPage; $i <= $endPage; $i++):
-                ?>
-                    <a href="?<?= $queryString ?>&page=<?= $i ?>" 
-                       class="px-3 py-2 rounded-lg transition text-sm <?= $i === $page ? 'bg-da-green text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
-                        <?= $i ?>
-                    </a>
-                <?php endfor; ?>
-
-                <?php if ($page < $totalPages): ?>
-                    <a href="?<?= $queryString ?>&page=<?= $page + 1 ?>" class="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm">
-                        <i class="fas fa-angle-right"></i>
-                    </a>
-                    <a href="?<?= $queryString ?>&page=<?= $totalPages ?>" class="px-3 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm">
-                        <i class="fas fa-angle-double-right"></i>
-                    </a>
-                <?php endif; ?>
-            </div>
-        </div>
-    <?php endif; ?>
-</div>
+    </div>
 
 <?php renderFooter(); ?>
